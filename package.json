@@ -5,10 +5,10 @@
   "main": "dictionary.js",
   "preferGlobal": true,
   "bin": {
-    "dic" : "./dictionary.js"
+    "dic": "bin/dictionary.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/amrit2357/command_line_dict#readme",
   "dependencies": {
+    "cli-spinner": "^0.2.10",
     "colors": "^1.4.0",
     "commander": "^4.1.1",
     "dotenv": "^8.2.0",

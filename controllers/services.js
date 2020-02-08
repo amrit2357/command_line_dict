@@ -1,6 +1,6 @@
 const request = require('request'),
       colors = require('colors')
-      require('dotenv').config()
+      require('dotenv').config({ path: '../.env' })
       
 
 
@@ -25,16 +25,13 @@ function randomWord(callback){
  *@Definition : Use the api to get the definition of word
  *@param : word,callback
  */
-function definitions(callback){
-    let uri = process.env.API_HOST +'/word/'+ 'single' +'/definitions?api_key='+ process.env.API_KEY
+function definitions(word , callback){
+    let uri = process.env.API_HOST +'/word/'+  word  +'/definitions?api_key='+ process.env.API_KEY
     request(uri, { json: true }, (err, res, body) => {
     if (err) { 
         return console.log(err); 
     }
-    res.body.forEach(element => {
-        console.log(JSON.stringify(element));
-        console.log('')       
-    });
+    callback(res.body)
     });
 }
 
@@ -44,14 +41,13 @@ function definitions(callback){
  *@param : word,callback
  */
 function examples(word, callback){
-    let uri = process.env.API_HOST +'/'+ word +'/examples?api_key='+ process.env.API_KEY
+    let uri = process.env.API_HOST +'/word/'+ word +'/examples?api_key='+ process.env.API_KEY
     request(rui, { json: true }, (err, res, body) => {
     if (err) { 
         return console.log(err); 
     }
-    console.log(JSON.stringify(res));
-    console.log(body.url);
-    console.log(body.explanation);
+    callback(res.body)
+   //  console.log(JSON.stringify(res.body));
     });
 }
 /* 
