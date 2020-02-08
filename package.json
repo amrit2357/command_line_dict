@@ -1,0 +1,36 @@
+{
+  "name": "dictionary",
+  "version": "1.0.0",
+  "description": "Command line dictionary Tool with node js.",
+  "main": "dictionary.js",
+  "preferGlobal": true,
+  "bin": {
+    "dic" : "./dictionary.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amrit2357/command_line_dict.git"
+  },
+  "keywords": [
+    "Command",
+    "Line",
+    "Dictionary",
+    "Nodejs"
+  ],
+  "author": "Amritpal singh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/amrit2357/command_line_dict/issues"
+  },
+  "homepage": "https://github.com/amrit2357/command_line_dict#readme",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^4.1.1",
+    "dotenv": "^8.2.0",
+    "inquirer": "^7.0.4",
+    "request": "^2.88.0"
+  }
+}
