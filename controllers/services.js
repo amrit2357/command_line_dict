@@ -1,8 +1,7 @@
 const request = require('request'),
     colors = require('colors'),
-    {randWord } = require('../lib/common')
+    { randWord, isEmpty } = require('../lib/common')
 require('dotenv').config({ path: '../.env' })
-
 
 
 /* 
@@ -31,9 +30,13 @@ function definitions(word, callback) {
     let uri = process.env.API_HOST + '/word/' + word + '/definitions?api_key=' + process.env.API_KEY
     request(uri, { json: true }, (err, res, body) => {
         if (err) {
-            return console.log(err);
+            console.log(err);
         }
-        callback(res.body)
+        if(res.body.error != undefined){
+            callback()
+        }else{
+            callback(res.body)
+        }
     });
 }
 
@@ -62,47 +65,74 @@ function relatedWords(word, callback) {
         if (err) {
             return console.log(err);
         }
-        callback(res.body)
+        if(res.body.error != undefined){
+            callback()
+        }else{
+            callback(res.body)
+        }
         /* callback will retuen the bith antonyms and synonyms */
     });
 }
 
-function randFullDict(word, callback) {
+function randFullDict(input, callback) {
     /* 
     1 . call the Random word service
     2 . call the Definition service
     3 . call the Related Word service
     */
-    randomWord((res) => {
-        
-        definitions(res, definition => {
-            if(word == null || word == undefined || word.length == 0){
-                res = word;
-            }
-            console.log('')
-            console.log(colors.yellow('Guess the Word: '))
-            console.log(colors.cyan('Definition of Word : ') + randWord(definition).text)
-            relatedWords(res, response => {
-                response.forEach(element => {
-                    if (element.relationshipType == 'synonym') {
-                        console.log(colors.green('Synonym of Word : ' + randWord(element.words)))
-                    } else {
-                        console.log(colors.green('Antonym of Word : ' + randWord(element.words)))
-                    } ``
-                });
-                examples(res , (example) =>{
-                    var counter = 1;
-                    example.forEach(element => {
-                        console.log(colors.green(counter++) + ' ' + element.text)
-                        console.log('\n')
-                    });
-                    callback(res);
-                })               
-            });
-        });      
-    });
+    let guess = isEmpty(input.guess)
+    let word = isEmpty(input.word)
+    var resp = {
+        "synonym" : [],
+        "word" : "",
+        "antonym" : []
+    }
+    try {
+        randomWord((res) => {
 
-    
+            definitions(res, (definition) => {
+                if (isEmpty(res)) {
+                    res = word
+                }
+                console.log('')
+
+                if (isEmpty(definition.error)) {
+                    console.log(colors.cyan('Definition of Word : ') + randWord(definition).text)
+                }
+                relatedWords(res, response => {
+                    if(isEmpty(response.error)){
+                    response.forEach(element => {
+                        if (element.relationshipType == 'synonym') {
+                            console.log(colors.green('Synonym of Word : ' + randWord(element.words)))
+                            resp.synonyms = element.words;
+                        } else {
+                            console.log(colors.green('Antonym of Word : ' + randWord(element.words)))
+                            resp.antonym = element.words;
+                        } 
+                        resp.word =  res;``
+                    });
+                    if (guess) {
+                        examples(res, (example) => {
+                            if (isEmpty(example.error)) {
+                                console.log(colors.blue('Examples of given Word : '))
+                                var counter = 1;
+                                example.forEach(element => {
+                                    console.log(colors.green(counter++) + ' ' + element.text)
+                                    console.log('\n')
+                                });
+                            }                     
+                            callback(resp);
+                        })
+                    } else {
+                        callback(res);
+                    }
+                }
+            });
+            });
+        });
+    } catch (e) {
+        console.log('Caught an Unhandled exception ' + e);
+    }
 }
 
 /*
