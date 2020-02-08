@@ -1,5 +1,7 @@
-const dotenv = require('dotenv').load,
-      request = require('request');
+const request = require('request'),
+      colors = require('colors')
+      require('dotenv').config()
+      
 
 
 /* 
@@ -9,16 +11,12 @@ const dotenv = require('dotenv').load,
  */
 function randomWord(callback){
 
-    console.log(process.env.API_HOST)
-    console.log(process.env.API_KEY)
     let uri = process.env.API_HOST +'/words/randomWord?api_key='+ process.env.API_KEY
     request(uri, { json: true }, (err, res, body) => {
     if (err) { 
         return console.log(err); 
     }
-    console.log(JSON.stringify(res));
-    console.log(body.url);
-    console.log(body.explanation);
+    console.log('Random Word : ' + colors.green(JSON.stringify(res.body.word)))
     });
 }
 
@@ -27,15 +25,16 @@ function randomWord(callback){
  *@Definition : Use the api to get the definition of word
  *@param : word,callback
  */
-function definitions(word, callback){
-    let uri = process.env.API_HOST +'/'+ word +'/definitions?api_key='+ process.env.API_KEY
+function definitions(callback){
+    let uri = process.env.API_HOST +'/word/'+ 'single' +'/definitions?api_key='+ process.env.API_KEY
     request(uri, { json: true }, (err, res, body) => {
     if (err) { 
         return console.log(err); 
     }
-    console.log(JSON.stringify(res));
-    console.log(body.url);
-    console.log(body.explanation);
+    res.body.forEach(element => {
+        console.log(JSON.stringify(element));
+        console.log('')       
+    });
     });
 }
 
@@ -61,14 +60,12 @@ function examples(word, callback){
  *@param : word,callback
  */
 function relatedWords(word, callback){
-    let uri = process.env.API_HOST +'/'+ word +'/relatedWords?api_key='+ process.env.API_KEY
+    let uri = process.env.API_HOST +'/word/'+ word +'/relatedWords?api_key='+ process.env.API_KEY
     request(uri, { json: true }, (err, res, body) => {
     if (err) { 
         return console.log(err); 
     }
-    console.log(JSON.stringify(res));
-    console.log(body.url);
-    console.log(body.explanation);
+    callback(res.body)
     });
 }
 

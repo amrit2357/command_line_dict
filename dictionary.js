@@ -2,7 +2,8 @@
 
 const commander = require('commander'),
     { prompt } = require('inquirer'),
-    colors = require('colors')
+    colors = require('colors');
+    require('dotenv').config()
 /* 
 Import all the services to use in dictionary
 */
@@ -29,18 +30,24 @@ commander
   .command('Definition <word>')
   .alias('defn')
   .description('Definition of given Word')
-  .action(() => {
-    prompt(question).then((answers) =>
-      console.log(answers));
+  .action(async(word) => {  
+        /* We will get the word entered by the user */
+        await definitions(word) ,
+        console.log(colors.green( 'Definitions of the word ' + colors.yellow(word) + ' are as follow :'))              
   });
 
   commander
   .command('Synonym <word>')
   .alias('sys')
   .description('Synonyms of a given word')
-  .action(() => {
-    prompt(question).then((answers) =>
-      console.log(answers));
+  .action(async(synonym) => {
+      try{
+      await relatedWords(synonym , (res)=>{
+        console.log(res);
+        commander.outputHelp();
+      })}catch(e){
+        console.error(e);
+      }   
   });
 
   commander
@@ -50,6 +57,7 @@ commander
   .action(() => {
     prompt(question).then((answers) =>
       console.log(answers));
+      commander.outputHelp();
   });
 
   commander
@@ -59,15 +67,20 @@ commander
   .action(() => {
     prompt(question).then((answers) =>
       console.log(answers));
+      commander.outputHelp();
   });
 
   commander
   .command('<word>')
-  .alias('')
+  .alias('word')
   .description('Definitions, Synonyms, Antonyms & Examples for a given word')
   .action(() => {
     prompt(question).then((answers) =>
       console.log(answers));
+      definition()
+      examples()
+      relatedWords()
+      commander.outputHelp();
   });
 
   commander
@@ -77,14 +90,15 @@ commander
   .action(() => {
     prompt(question).then((answers) =>
       console.log(answers));
+      randomWord()
   });
 
 // Assert that a VALID command is provided 
-if (!process.argv.slice(1).length || !/[arudl]/.test(process.argv.slice(2))) {
+if (!process.argv.slice(2).length || !/[arudl]/.test(process.argv.slice(2))) {
     console.log(colors.blue('Welcome to Dictionay'));
     console.log(colors.green('Today\'s Word'));
-    console.log('\n');
-    
+    console.log('');
+
     commander.outputHelp();
     process.exit();
   }
