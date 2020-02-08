@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/amrit2357/command_line_dict#readme",
   "dependencies": {
+    "chalk": "^3.0.0",
     "cli-spinner": "^0.2.10",
     "colors": "^1.4.0",
     "commander": "^4.1.1",
