@@ -2,13 +2,12 @@
 
 const commander = require('commander'),
   { prompt } = require('inquirer'),
-  { randWord, spinnerObj, isEmpty } = require('../lib/common.js'),
+  { randWord, isEmpty, randomHintGenerator } = require('./lib/common'),
   ora = require('ora');
 
 const spinner = ora('Processing..')
 colors = require('colors'),
-
-  require('dotenv').config({ path: '../.env' })
+  require('dotenv').config()
 /* 
 Import all the services to use in dictionary
 */
@@ -18,14 +17,22 @@ const {
   definitions,
   relatedWords,
   randFullDict
-} = require('../controllers/services');
-
+} = require('./controllers/services');
 
 var question = [
   {
     type: 'input',
     name: 'word',
     message: 'Enter the Word ..'
+  }
+]
+
+var tryQuestion = [
+  {
+    type: 'list',
+    name: 'option',
+    message: 'Please select which option You want to Choose',
+    choices: ['Try again', 'Hint', 'Quit'],
   }
 ]
 
@@ -59,7 +66,7 @@ commander
           });
         }
         commander.outputHelp();
-      })  
+      })
     } catch (e) {
       console.error(e);
     }
@@ -76,7 +83,7 @@ commander
   .action(async (synonym) => {
     try {
       spinner.start()
-      await relatedWords(synonym, (res) => {   
+      await relatedWords(synonym, (res) => {
         spinner.clear()
         if (isEmpty(res) || !isEmpty(res.error)) {
           spinner.fail(colors.red('Please try again , no synonmys found.'))
@@ -205,7 +212,7 @@ commander
       var result;
       spinner.clear()
       console.log(colors.yellow('Guess the Word: '))
-      await randomWord((word) => {
+      randomWord((word) => {
         var input = {
           "word": word,
           "guess": true
@@ -214,58 +221,108 @@ commander
         randFullDict(input, (res) => {
           result = res;
           spinner.stop()
-        })
-      })
-      prompt(question).then((ans) => {
-        console.log(ans.word + " " + result)
-        if (ans.word.toLowerCase() == result) {
-          console.log('You guessed it right')
-        } else {
-          // check for synonms of the words
-          // if not present the error message
+          prompt(question).then((ans) => {
+            if (ans.word.toLowerCase() == result.word || !isEmpty(result.synonym) && (result.synonym).includes(ans.word.toLowerCase)) {
+              spinner.succeed("You guessed it right")
+            } else {
+              spinner.fail(colors.red('You have entered the wrong answer'))
+              /*
+                1. Try again
+                2. Hint with another definition or antonyms
+                3. Quit
+                */
 
-          console.log(colors.red('You have entered the wrong answer . Try again'))
-          // Now we got the word and synonyms and antonyms of word, that we have showm to user
-          /*
-          1. try again
-          2. with another definition and antonyms
-          3. quit
-          */
-        }
+              prompt(tryQuestion).then((ans) => {
+                switch (ans.option) {
+                  case 'Try again':
+                    /* 
+                    Again ask the user for word 
+                    */
+                    prompt(question).then((ans) => {
+                      if (ans.word.toLowerCase() == result.word || !isEmpty(result.synonym) && (result.synonym).includes(ans.word.toLowerCase)) {
+                        spinner.succeed("You guessed it right")
+                      } else {
+                        spinner.fail(colors.red('Again you have entered the wrong answer'))
+                      }
+                      commander.outputHelp()
+                      process.exit(0);
+                    })
+                    break;
+                  case 'Hint':
+                    /*
+                    Provide the another hint to the User
+                    */
+                    randomHintGenerator(result, () => {
+                      prompt(question).then((ans) => {
+                        if (ans.word.toLowerCase() == result.word || !isEmpty(result.synonym) && (result.synonym).includes(ans.word.toLowerCase)) {
+                          spinner.succeed("You guessed it right")
+                        } else {
+                          spinner.fail(colors.red('Again you have entered the wrong answer'))
+                        }
+                        commander.outputHelp()
+                        process.exit(0);
+                      });
+                    }
+                    );
+                    break;
+                  case 'Quit':
+                    // Show the word and full dictionary and Exit the loop
+                    spinner.succeed(colors.yellow("The Word to guess Was : " + colors.blue(result.word)))
+                    var input = {
+                      "word": result.word,
+                      "guess": false
+                    }
+                    randFullDict(input, (res) => {
+                      result = res;
+                      commander.outputHelp()
+                      process.exit(0);
+                    });
+                    break;
+                }
+              });
+            }
+          });
+        });
       });
     } catch (e) {
-      spinner.stop()
       console.error(e);
     }
   });
+
+
+
 
 /* 
 Function called When the user provided nothing in the Command line interface
 */
 if (!process.argv.slice(2).length) {
   // Implement the Random word functionalty
-  spinner.start()
-  randomWord((word) => {
-    spinner.clear()
-    spinner.stop()
-    console.log(colors.cyan('Today\'s Word is: ') + word)
-    var input = {
-      "word": word,
-      "guess": false
-    }
-    randFullDict(input, (res) => {
-      result = res;
-      console.log('\n')
-      commander.outputHelp();
+  try {
+    spinner.start()
+    randomWord((word) => {
+      spinner.clear()
+      spinner.stop()
+      console.log(colors.cyan('Today\'s Word is: ') + word)
+      var input = {
+        "word": word,
+        "guess": false
+      }
+      randFullDict(input, (res) => {
+        result = res;
+        console.log('\n')
+        commander.outputHelp();
+      })
     })
-  })
+  } catch (e) {
+    console.log(colors.red('Caught an unhandled exception ' + e))
+  }
 }
 
 if (process.argv.slice(2).length) {
   // Implement the Random word functionalty
   try {
     var word = process.argv.slice(2)[0]
-    var commands = ["defn", "sys", "ant", "play" ,"ex"]
+    var commands = ["defn", "sys", "ant", "play", "ex"]
     if (!commands.includes(word)) {
       var input = {
         "word": word,
@@ -279,6 +336,5 @@ if (process.argv.slice(2).length) {
   } catch (e) {
     console.log(colors.red('Caught an unhandled exception ' + e))
   }
-
 }
 commander.parse(process.argv)

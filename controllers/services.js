@@ -1,9 +1,10 @@
 const request = require('request'),
+    ora = require('ora'),
     colors = require('colors'),
-    { randWord, isEmpty } = require('../lib/common'),
-    ora = require('ora');
-const spinner = ora('Processing..')
+    { randWord, isEmpty } = require('../lib/common');
 require('dotenv').config({ path: '../.env' })
+const spinner = ora('Processing..')
+
 
 
 /* 
@@ -88,7 +89,8 @@ function randFullDict(input, callback) {
     var resp = {
         "synonym": [],
         "word": "",
-        "antonym": []
+        "antonym": [],
+        "definition": [],
     }
     try {
         spinner.start()
@@ -102,6 +104,7 @@ function randFullDict(input, callback) {
                 console.log('')
                 if (!isEmpty(definition)) {
                     spinner.succeed(colors.cyan('Definition of Word :- ') + randWord(definition).text)
+                    resp.definition = definition
                     spinner.clear()
                 }
                 relatedWords(res, response => {
@@ -109,9 +112,9 @@ function randFullDict(input, callback) {
                         // Error : Not word found from the backend
                     } else {
                         response.forEach(element => {
-                            if (element.relationshipType == 'synonym') {                 
+                            if (element.relationshipType == 'synonym') {
                                 spinner.succeed(colors.green('Synonym of Word : ' + randWord(element.words)))
-                                resp.synonyms = element.words; 
+                                resp.synonym = element.words;
                                 spinner.clear()
                             } else {
                                 spinner.succeed(colors.green('Antonym of Word : ' + randWord(element.words)))
@@ -132,10 +135,10 @@ function randFullDict(input, callback) {
                                     console.log('\n')
                                 });
                             }
-                            callback(resp);
+                            callback(res);
                         });
                     } else {
-                        callback(res);
+                        callback(resp);
                     }
                 });
             });
