@@ -45,7 +45,6 @@ Display Word Definitions, Word Synonyms, Word Antonyms & Word Examples for a ran
 
 7. Word Game
      ./dict play
-
 The command should display a definition, a synonym or an antonym and ask the user to guess the word. 
 
 # Rules

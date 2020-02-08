@@ -1,6 +1,8 @@
 const request = require('request'),
     colors = require('colors'),
-    { randWord, isEmpty } = require('../lib/common')
+    { randWord, isEmpty } = require('../lib/common'),
+    ora = require('ora');
+const spinner = ora('Processing..')
 require('dotenv').config({ path: '../.env' })
 
 
@@ -32,9 +34,9 @@ function definitions(word, callback) {
         if (err) {
             console.log(err);
         }
-        if(res.body.error != undefined){
+        if (res.body.error != undefined) {
             callback()
-        }else{
+        } else {
             callback(res.body)
         }
     });
@@ -65,9 +67,9 @@ function relatedWords(word, callback) {
         if (err) {
             return console.log(err);
         }
-        if(res.body.error != undefined){
+        if (res.body.error != undefined) {
             callback()
-        }else{
+        } else {
             callback(res.body)
         }
         /* callback will retuen the bith antonyms and synonyms */
@@ -79,55 +81,63 @@ function randFullDict(input, callback) {
     1 . call the Random word service
     2 . call the Definition service
     3 . call the Related Word service
+    4 . call the example service
     */
-    let guess = isEmpty(input.guess)
-    let word = isEmpty(input.word)
+    let guess = input.guess
+    let word = input.word
     var resp = {
-        "synonym" : [],
-        "word" : "",
-        "antonym" : []
+        "synonym": [],
+        "word": "",
+        "antonym": []
     }
     try {
+        spinner.start()
         randomWord((res) => {
-
             definitions(res, (definition) => {
-                if (isEmpty(res)) {
+                /* If we pass then word then it will overide the res */
+                spinner.clear()
+                if (!isEmpty(word)) {
                     res = word
                 }
                 console.log('')
-
-                if (isEmpty(definition.error)) {
-                    console.log(colors.cyan('Definition of Word : ') + randWord(definition).text)
+                if (!isEmpty(definition)) {
+                    spinner.succeed(colors.cyan('Definition of Word :- ') + randWord(definition).text)
+                    spinner.clear()
                 }
                 relatedWords(res, response => {
-                    if(isEmpty(response.error)){
-                    response.forEach(element => {
-                        if (element.relationshipType == 'synonym') {
-                            console.log(colors.green('Synonym of Word : ' + randWord(element.words)))
-                            resp.synonyms = element.words;
-                        } else {
-                            console.log(colors.green('Antonym of Word : ' + randWord(element.words)))
-                            resp.antonym = element.words;
-                        } 
-                        resp.word =  res;``
-                    });
-                    if (guess) {
+                    if (isEmpty(response) || !isEmpty(response.error)) {
+                        // Error : Not word found from the backend
+                    } else {
+                        response.forEach(element => {
+                            if (element.relationshipType == 'synonym') {                 
+                                spinner.succeed(colors.green('Synonym of Word : ' + randWord(element.words)))
+                                resp.synonyms = element.words; 
+                                spinner.clear()
+                            } else {
+                                spinner.succeed(colors.green('Antonym of Word : ' + randWord(element.words)))
+                                resp.antonym = element.words;
+                            }
+                            resp.word = res; ``
+                        });
+                    }
+                    if (!guess) {
                         examples(res, (example) => {
-                            if (isEmpty(example.error)) {
-                                console.log(colors.blue('Examples of given Word : '))
+                            if (isEmpty(example) || !isEmpty(example.error)) {
+                                // Error No examples found for word
+                            } else {
+                                spinner.succeed(colors.blue('Examples of given Word : '))
                                 var counter = 1;
                                 example.forEach(element => {
                                     console.log(colors.green(counter++) + ' ' + element.text)
                                     console.log('\n')
                                 });
-                            }                     
+                            }
                             callback(resp);
-                        })
+                        });
                     } else {
                         callback(res);
                     }
-                }
-            });
+                });
             });
         });
     } catch (e) {

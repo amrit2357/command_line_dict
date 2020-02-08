@@ -2,7 +2,10 @@
 
 const commander = require('commander'),
   { prompt } = require('inquirer'),
-  { randWord, spinnerObj, isEmpty } = require('../lib/common.js')
+  { randWord, spinnerObj, isEmpty } = require('../lib/common.js'),
+  ora = require('ora');
+
+const spinner = ora('Processing..')
 colors = require('colors'),
 
   require('dotenv').config({ path: '../.env' })
@@ -41,21 +44,22 @@ commander
   .action(async (word) => {
     /* We will get the word entered by the user */
     try {
-      spinnerObj.start()
+      spinner.start()
       await definitions(word, (res) => {
-        spinnerObj.stop()
+        spinner.stop()
         console.log('\n')
-        if (!isEmpty(res)) {
-          console.log(colors.green('Definitions of the word ' + colors.yellow(word) + ' are as follow :'))
+        if (isEmpty(res) || !isEmpty(res.error)) {
+          spinner.fail(colors.red('No Definition found for word : ') + colors.yellow(word))
+        } else {
+          spinner.succeed('Definitions of the word ' + colors.yellow(word) + ' are as follow :')
           var count = 1
           res.forEach(element => {
-            console.log(colors.yellow(count++) + ' ' + element.text);
+            console.log(colors.yellow(count++) + ' -> ' + element.text);
             console.log('')
           });
-        } else {
-          console.log(colors.red('No definition found for word : ' + colors.yellow(word)))
         }
-      })
+        commander.outputHelp();
+      })  
     } catch (e) {
       console.error(e);
     }
@@ -71,12 +75,11 @@ commander
   .description('Synonyms of a given word')
   .action(async (synonym) => {
     try {
-      spinnerObj.start()
-      await relatedWords(synonym, (res) => {
-        console.log('\n')
-        spinnerObj.stop()
-        if (isEmpty(res) || !isEmpty(res.error)){
-          console.error(colors.red('Please try again , no synonmys found.'))
+      spinner.start()
+      await relatedWords(synonym, (res) => {   
+        spinner.clear()
+        if (isEmpty(res) || !isEmpty(res.error)) {
+          spinner.fail(colors.red('Please try again , no synonmys found.'))
           console.log('\n')
         } else {
           var words;
@@ -85,12 +88,13 @@ commander
               words = element.words;
             }
           });
+          spinner.stop()
           /* Check if the synonym of Word found or Not */
           if (!isEmpty(words)) {
-            console.log(colors.green('Synonym of the word ' + colors.yellow(synonym) + ' : ' + randWord(words)))
+            spinner.succeed(colors.green('Synonym of the word ' + colors.yellow(synonym) + ' : ' + randWord(words)))
             console.log('\n')
           } else {
-            console.error(colors.red('Please try again , no synonmys found.'))
+            spinner.fail(colors.red('Please try again , no synonmys found.'))
             console.log('\n')
           }
         }
@@ -111,13 +115,12 @@ commander
   .description('Antonyms of a given word')
   .action(async (antonyms) => {
     try {
-      spinnerObj.start()
+      spinner.start()
       await relatedWords(antonyms, (res) => {
-        console.log('\n')
-        spinnerObj.stop()
+        spinner.clear()
         /* Check if the synonym of Word found or Not */
         if (isEmpty(res) || !isEmpty(res.error)) {
-          console.error(colors.res('Please try again , no Antonyms found.'))
+          spinner.fail(colors.red('Please try again , no Antonyms found.'))
           console.log('\n')
         } else {
           var words;
@@ -127,12 +130,13 @@ commander
             }
           });
           if (!isEmpty(words)) {
-            console.log(colors.green('Antonym of the word ' + colors.yellow(antonyms) + ' : ' + randWord(words)))
+            spinner.succeed(colors.green('Antonym of the word ' + colors.yellow(antonyms) + ' : ' + randWord(words)))
             console.log('\n')
           } else {
-            console.error(colors.red('Please try again , no antonyms found.'))
+            spinner.fail(colors.red('Please try again , no antonyms found.'))
           }
         }
+        spinner.stop()
         commander.outputHelp();
       })
     } catch (e) {
@@ -151,20 +155,21 @@ commander
   .description('Examples of usage of a given word in a sentence')
   .action(async (word) => {
     try {
-      spinnerObj.start()
+      spinner.start()
       await examples(word, (res) => {
+        spinner.clear()
         console.log('\n')
-        spinnerObj.stop()
-        if (!isEmpty(res)) {
-          console.log(colors.green('Examples of the word ' + colors.yellow(word) + ' are as follow :'))
+        if (isEmpty(res) || !isEmpty(res.error)) {
+          spinner.fail(colors.red('No examples of the word ' + colors.yellow(word) + ' found'))
+        } else {
+          spinner.succeed(colors.green('Examples of the word ' + colors.yellow(word) + ' are as follow :'))
           var count = 1
           res.forEach(element => {
-            console.log(colors.yellow(count++) + ' ' + element.text);
+            console.log(colors.yellow(count++) + ' -> ' + element.text);
             console.log('')
           });
-        } else {
-          console.log(colors.green('No examples of the word ' + colors.yellow(word) + 'found'))
         }
+        spinner.stop()
         commander.outputHelp();
       })
     } catch (e) {
@@ -181,20 +186,6 @@ commander
   .command('<word> ')
   .alias('')
   .description('Definitions, Synonyms, Antonyms & Examples for a given word')
-  .action(() => {
-    prompt(question).then((ans) => {
-      spinnerObj.start()
-      var input = {
-        "word": ans,
-        "guess": false
-      }
-      randFullDict(input, (res) => {
-        result = res;
-        spinnerObj.stop()
-      })
-      commander.outputHelp()
-    });
-  })
 
 /* 
   * Function Which required "play" as command. 
@@ -210,17 +201,19 @@ commander
 
     /* First call the random word api to get the random word */
     try {
-      spinnerObj.start()
-      let result;
+      spinner.start()
+      var result;
+      spinner.clear()
       console.log(colors.yellow('Guess the Word: '))
-      randomWord((word) => {
+      await randomWord((word) => {
         var input = {
           "word": word,
           "guess": true
         }
+        spinner.stop()
         randFullDict(input, (res) => {
           result = res;
-          spinnerObj.stop()
+          spinner.stop()
         })
       })
       prompt(question).then((ans) => {
@@ -230,7 +223,9 @@ commander
         } else {
           // check for synonms of the words
           // if not present the error message
+
           console.log(colors.red('You have entered the wrong answer . Try again'))
+          // Now we got the word and synonyms and antonyms of word, that we have showm to user
           /*
           1. try again
           2. with another definition and antonyms
@@ -239,28 +234,51 @@ commander
         }
       });
     } catch (e) {
-      spinnerObj.stop()
+      spinner.stop()
       console.error(e);
     }
   });
 
-// Assert that a VALID command is provided from the Command line interface
+/* 
+Function called When the user provided nothing in the Command line interface
+*/
 if (!process.argv.slice(2).length) {
   // Implement the Random word functionalty
+  spinner.start()
   randomWord((word) => {
-    console.log(colors.cyan('Today\'s Word : ') + word)
+    spinner.clear()
+    spinner.stop()
+    console.log(colors.cyan('Today\'s Word is: ') + word)
     var input = {
       "word": word,
       "guess": false
     }
     randFullDict(input, (res) => {
       result = res;
-      spinnerObj.stop()
       console.log('\n')
       commander.outputHelp();
-      console.log('\n')
-      process.exit();
     })
   })
+}
+
+if (process.argv.slice(2).length) {
+  // Implement the Random word functionalty
+  try {
+    var word = process.argv.slice(2)[0]
+    var commands = ["defn", "sys", "ant", "play" ,"ex"]
+    if (!commands.includes(word)) {
+      var input = {
+        "word": word,
+        "guess": false
+      }
+      randFullDict(input, (res) => {
+        result = res;
+        commander.outputHelp()
+      });
+    }
+  } catch (e) {
+    console.log(colors.red('Caught an unhandled exception ' + e))
+  }
+
 }
 commander.parse(process.argv)
