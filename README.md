@@ -2,7 +2,7 @@
 Command Line Dictionary (Node Js)
 
 # API's
-apihost = 'https://fourtytwowords.herokuapp.com'
+apihost = "<Given host name>"
 
 * {apihost}/words/randomWord?api_key={api_key}
 * {apihost}/word/{word}/definitions?api_key={api_key}
@@ -67,7 +67,6 @@ Rules:
 
 # Command Line Intructions
 Command Line Dictionary
-
 Options:
   -V, --version           output the version number
   -h, --help              output usage information
@@ -80,9 +79,9 @@ Commands:
   <word>                  Definitions, Synonyms, Antonyms & Examples for a given word
   Gameplay|play           Guess the word from given examples
 
-  # Instruction to install
+# Instructions to install
 
-  1 . Create .env file.
-  2 . Write API_KEY and API_HOST in file to access the Api's
-  3 . Install all the npm modules by : npm install
-  4 . Run the server by : node dictionary.js
+1 . Create .env file.
+2 . Write API_KEY and API_HOST in file to access the Api's
+3 . Install all the npm modules by : npm install
+4 . Run the server by : node dictionary.js
