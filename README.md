@@ -79,3 +79,10 @@ Commands:
   Example|ex <word>       Examples of usage of a given word in a sentence
   <word>                  Definitions, Synonyms, Antonyms & Examples for a given word
   Gameplay|play           Guess the word from given examples
+
+  # Instruction to install
+
+  1 . Create .env file.
+  2 . Write API_KEY and API_HOST in file to access the Api's
+  3 . Install all the npm modules by : npm install
+  4 . Run the server by : node dictionary.js
