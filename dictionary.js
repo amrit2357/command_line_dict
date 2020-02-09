@@ -45,7 +45,7 @@ commander
     Return the Definition of the given word 
 */
 commander
-  .command('Definition <word> ')
+  .command('Definition <word>')
   .alias('defn')
   .description('Definition of given Word')
   .action(async (word) => {
@@ -211,7 +211,7 @@ commander
       spinner.start()
       var result;
       spinner.clear()
-      console.log(colors.yellow('Guess the Word: '))
+      console.log(colors.yellow('Guess the Word with given hints: '))
       randomWord((word) => {
         var input = {
           "word": word,

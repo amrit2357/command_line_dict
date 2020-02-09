@@ -128,6 +128,7 @@ function randFullDict(input, callback) {
                             if (isEmpty(example) || !isEmpty(example.error)) {
                                 // Error No examples found for word
                             } else {
+                                console.log('\n')
                                 spinner.succeed(colors.blue('Examples of given Word : '))
                                 var counter = 1;
                                 example.forEach(element => {

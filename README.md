@@ -64,3 +64,18 @@ Rules:
             4. Display another synonym of the word
     - (3) Quit
            Display the Word, Word Full Dict , and quit.
+
+# Command Line Intructions
+Command Line Dictionary
+
+Options:
+  -V, --version           output the version number
+  -h, --help              output usage information
+
+Commands:
+  Definition|defn <word>  Definition of given Word
+  Synonym|sys <word>      Synonyms of a given word
+  Antonyms|ant <word>     Antonyms of a given word
+  Example|ex <word>       Examples of usage of a given word in a sentence
+  <word>                  Definitions, Synonyms, Antonyms & Examples for a given word
+  Gameplay|play           Guess the word from given examples
